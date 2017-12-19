@@ -1,4 +1,4 @@
-# Reversi
+﻿# Reversi
 #AI題目:  8*8 黑白棋
 
 #安裝指定: pip install pygame
@@ -11,3 +11,4 @@
 
 .
 #參考文獻:
+# https://www.ptt.cc/bbs/othello/M.1299304992.A.54A.html

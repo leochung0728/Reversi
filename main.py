@@ -1,6 +1,6 @@
-import pygame, sys, random, time
-from enum import Enum
-from pygame.locals import *
+import pygame, sys, random, time #載入套件
+from enum import Enum #列舉
+from pygame.locals import * #載入套件
 
 BACKGROUNDCOLOR = (255, 255, 255)
 BLACK = (255, 255, 255)
@@ -24,12 +24,12 @@ whiteRect = whiteImage.get_rect()
 
 gameOverStr = 'Game Over Score '
 
-
+#玩家 
 class Role(Enum):
     PLAYER = 'player'
     COMPUTER = 'computer'
 
-
+#棋子顏色
 class Side(Enum):
     BLACK = 'black'
     WHITE = 'white'
@@ -239,6 +239,7 @@ def sideSelect():
 
     while True:
         for event in pygame.event.get():
+            #取得事件
             if event.type == QUIT:
                 terminate()
             if event.type == MOUSEBUTTONUP:

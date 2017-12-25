@@ -1,6 +1,14 @@
+
+# coding: utf-8
+
+# In[1]:
+
 import pygame, sys, random, time #載入套件
 from enum import Enum #列舉
 from pygame.locals import * #載入套件
+
+
+# In[2]:
 
 BACKGROUNDCOLOR = (255, 255, 255)
 BLACK = (255, 255, 255)
@@ -13,6 +21,7 @@ PIECEHEIGHT = 40
 BOARDX = 0
 BOARDY = 0
 FPS = 1000
+useAIBattle = False #AI自鬥
 
 # load img
 boardImage = pygame.image.load('./img/board.png')
@@ -34,6 +43,11 @@ class Side(Enum):
     BLACK = 'black'
     WHITE = 'white'
 
+#模式
+class Mode(Enum):
+    FIRST = '先手'
+    SECOND = '後攻'
+    AI = 'AI_Battle'
 
 # 離開
 def terminate():
@@ -230,12 +244,17 @@ def sideSelect():
     # 先手
     xSurf = BIGFONT.render('black', True, WHITE, BLUE)
     xRect = xSurf.get_rect()
-    xRect.center = (int(400 / 2) - 60, int(400 / 2) + 40)
+    xRect.center = (int(400 / 2) - 120, int(400 / 2) + 40)
 
     # 後手
     oSurf = BIGFONT.render('white', True, WHITE, BLUE)
     oRect = oSurf.get_rect()
-    oRect.center = (int(400 / 2) + 60, int(400 / 2) + 40)
+    oRect.center = (int(400 / 2) , int(400 / 2) + 40)
+    
+     # 後手
+    aSurf = BIGFONT.render('AIBattle', True, WHITE, BLUE)
+    aRect = aSurf.get_rect()
+    aRect.center = (int(400 / 2) + 120, int(400 / 2) + 40)
 
     while True:
         for event in pygame.event.get():
@@ -245,11 +264,14 @@ def sideSelect():
             if event.type == MOUSEBUTTONUP:
                 x, y = event.pos
                 if xRect.collidepoint((x, y)):
-                    return Side.BLACK
+                    return Mode.FIRST
                 elif oRect.collidepoint((x, y)):
-                    return Side.WHITE
+                    return Mode.SECOND
+                elif aRect.collidepoint((x, y)):
+                    return Mode.AI
         windowSurface.blit(xSurf, xRect)
         windowSurface.blit(oSurf, oRect)
+        windowSurface.blit(aSurf, aRect)
         pygame.display.update()
         mainClock.tick(FPS)
 
@@ -269,15 +291,21 @@ if __name__ == '__main__':
     windowSurface = pygame.display.set_mode((boardRect.width, boardRect.height))
     pygame.display.set_caption('Reversi')
 
-    if sideSelect() == Side.BLACK:
+    sel = sideSelect()
+    if sel == Mode.AI:
+        useAIBattle = True
         turn = Role.PLAYER
         playerTile = Side.BLACK
         computerTile = Side.WHITE
-    else:
+    elif sel == Mode.FIRST:
+        turn = Role.PLAYER
+        playerTile = Side.BLACK
+        computerTile = Side.WHITE
+    elif sel == Mode.SECOND:
         turn = Role.COMPUTER
         playerTile = Side.WHITE
         computerTile = Side.BLACK
-
+        
     # 遊戲主循環
     while True:
         for event in pygame.event.get():
@@ -296,13 +324,19 @@ if __name__ == '__main__':
                 windowSurface.blit(text, textRect)
 
             elif turn == Role.PLAYER:
-                if event.type == MOUSEBUTTONUP:
-                    x, y = event.pos
-                    col = int((x - BOARDX) / CELLWIDTH)
-                    row = int((y - BOARDY) / CELLHEIGHT)
+                if useAIBattle:
+                    col, row = getComputerMove(mainBoard, playerTile)
                     if makeMove(mainBoard, playerTile, col, row):
                         if len(getValidMoves(mainBoard, computerTile)) != 0:
                             turn = Role.COMPUTER
+                else:
+                    if event.type == MOUSEBUTTONUP:
+                        x, y = event.pos
+                        col = int((x - BOARDX) / CELLWIDTH)
+                        row = int((y - BOARDY) / CELLHEIGHT)
+                        if makeMove(mainBoard, playerTile, col, row):
+                            if len(getValidMoves(mainBoard, computerTile)) != 0:
+                                turn = Role.COMPUTER
                 drawBoard(mainBoard)
 
             elif turn == Role.COMPUTER:
@@ -316,3 +350,9 @@ if __name__ == '__main__':
 
         pygame.display.update()
         mainClock.tick(FPS)
+
+
+# In[ ]:
+
+
+

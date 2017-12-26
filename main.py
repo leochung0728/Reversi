@@ -1,14 +1,7 @@
+import pygame, sys, random, time  # 載入套件
+from enum import Enum  # 列舉
+from pygame.locals import *  # 載入套件
 
-# coding: utf-8
-
-# In[1]:
-
-import pygame, sys, random, time #載入套件
-from enum import Enum #列舉
-from pygame.locals import * #載入套件
-
-
-# In[2]:
 
 BACKGROUNDCOLOR = (255, 255, 255)
 BLACK = (255, 255, 255)
@@ -249,16 +242,16 @@ def sideSelect():
     # 後手
     oSurf = BIGFONT.render('white', True, WHITE, BLUE)
     oRect = oSurf.get_rect()
-    oRect.center = (int(400 / 2) , int(400 / 2) + 40)
+    oRect.center = (int(400 / 2), int(400 / 2) + 40)
     
-     # 後手
+     # AI
     aSurf = BIGFONT.render('AIBattle', True, WHITE, BLUE)
     aRect = aSurf.get_rect()
     aRect.center = (int(400 / 2) + 120, int(400 / 2) + 40)
 
     while True:
         for event in pygame.event.get():
-            #取得事件
+            # 取得事件
             if event.type == QUIT:
                 terminate()
             if event.type == MOUSEBUTTONUP:
@@ -350,9 +343,3 @@ if __name__ == '__main__':
 
         pygame.display.update()
         mainClock.tick(FPS)
-
-
-# In[ ]:
-
-
-

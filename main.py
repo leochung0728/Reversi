@@ -107,7 +107,12 @@ def runGame():
     while True:
         if turn == Role.PLAYER_1 and not isAuto:
             if len(getValidMoves(mainBoard, playerOneTile)) == 0:
-                break
+                if len(getValidMoves(mainBoard, playerTwoTile)) == 0:
+                    break
+                else:
+                    turn = Role.PLAYER_2
+                    continue
+
             movexy = None
             while movexy is None:
                 if showHints:
@@ -146,14 +151,20 @@ def runGame():
             if turn == Role.PLAYER_1:
                 turnOther = Role.PLAYER_2
                 tile = playerOneTile
+                tileOther = playerTwoTile
                 useMethod = Algorithm_1
             else:
                 turnOther = Role.PLAYER_1
                 tile = playerTwoTile
+                tileOther = playerOneTile
                 useMethod = Algorithm_2
 
             if len(getValidMoves(mainBoard, tile)) == 0:
-                break
+                if len(getValidMoves(mainBoard, tileOther)) == 0:
+                    break
+                else:
+                    turn = turnOther
+                    continue
 
             drawBoard(mainBoard, currentXY)
             drawInfo(mainBoard, playerOneTile, playerTwoTile, turn)

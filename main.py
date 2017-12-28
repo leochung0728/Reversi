@@ -1,132 +1,9 @@
+import pygame, sys, copy
+from enum import Enum
+from pygame.locals import *
+from ai_factory import AlgorithmFactory
 
-# coding: utf-8
-
-# In[1]:
-
-#演算法_1
-class Algorithm_1(object):
-    #建構子
-    def __init__(self,pUserTitle,pPossibleMoves,pBoard):
-        self.mainboard = pBoard #複製後的棋盤位置
-        self.possibleMoves = pPossibleMoves #合法位置
-        self.userTitle = pUserTitle #執行玩家
-        self.position = self.__main__()
-    #取得位置
-    def getPosition(self):
-        return self.position
-    # 是否在角上
-    def isOnCorner(self,x, y):
-        return (x == 0 and y == 0) or (x == 7 and y == 0) or (x == 0 and y == 7) or (x == 7 and y == 7)
-    # 獲取棋盤上雙方的棋子數
-    def getScoreOfBoard(self,board):
-        xscore = 0
-        oscore = 0
-        for x in range(8):
-            for y in range(8):
-                if board[x][y] == 1:
-                    xscore += 1
-                if board[x][y] == 0:
-                    oscore += 1
-        return {1: xscore, 0: oscore}
-    # 是否為合法走法
-    def isValidMove(self,board, tile, xstart, ystart):
-        # 檢查該位置是否出界或已有棋子
-        if not self.isOnBoard(xstart, ystart) or board[xstart][ystart] is not None:
-            return False
-
-        # 臨時將tile放到指定的位置
-        board[xstart][ystart] = tile
-
-        if tile == 1:
-            otherTile = 0
-        else:
-            otherTile = 1
-
-        # 要被翻轉的棋子
-        tilesToFlip = []
-        for xdirection, ydirection in [[0, 1], [1, 1], [1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1]]:
-            x, y = xstart, ystart
-            x += xdirection
-            y += ydirection
-            # 前進方向第一格是 合法範圍 且 是對方的棋子
-            if self.isOnBoard(x, y) and board[x][y] == otherTile:
-                x += xdirection
-                y += ydirection
-                if not self.isOnBoard(x, y):
-                    continue
-                # 一直走到出界或是不是對方棋子
-                while board[x][y] == otherTile:
-                    x += xdirection
-                    y += ydirection
-                    if not self.isOnBoard(x, y):
-                        break
-                # 出界了，則没有棋子要翻轉
-                if not self.isOnBoard(x, y):
-                    continue
-                # 是自己的棋子
-                if board[x][y] == tile:
-                    while True:
-                        x -= xdirection
-                        y -= ydirection
-                        # 回到了起點則结束
-                        if x == xstart and y == ystart:
-                            break
-                        # 需要翻轉的棋子
-                        tilesToFlip.append([x, y])
-
-        # 將前面臨時放上的棋子去掉，即還原棋盤
-        board[xstart][ystart] = None  # restore the empty space
-
-        # 没有要被翻轉的棋子，則走法非法
-        if len(tilesToFlip) == 0:
-            return False
-
-        return tilesToFlip
-    
-    # 是否出界
-    def isOnBoard(self,x, y):
-        return 0 <= x <= 7 and 0 <= y <= 7
-    # 將一個tile棋子放到(xstart, ystart)
-    def makeMove(self,board, tile, xstart, ystart):
-        tilesToFlip = self.isValidMove(board, tile, xstart, ystart)
-
-        if tilesToFlip == False:
-            return False
-
-        board[xstart][ystart] = tile
-        for x, y in tilesToFlip:
-            board[x][y] = tile
-        return True
-
-    #主程式
-    def __main__(self):
-        # 打亂順序
-        random.shuffle(self.possibleMoves)
-        # [x, y]在角上，則優先走
-        for x, y in self.possibleMoves:
-            if self.isOnCorner(x, y):
-                return [x, y]
-        #預設最低分數
-        bestScore = -1
-        for x, y in self.possibleMoves:
-            dupeBoard = self.mainboard
-            self.makeMove(dupeBoard,self.userTitle, x, y)
-            # 按照分數選擇走法，優先選擇翻轉後分數最多的走法
-            score = self.getScoreOfBoard(dupeBoard)[self.userTitle]
-            if score > bestScore:
-                bestMove = [x, y]
-                bestScore = score
-        return bestMove
-
-
-# In[2]:
-
-import pygame, sys, random, time, copy  # 載入套件
-from enum import Enum  # 列舉
-from pygame.locals import *  # 載入套件
-
-
-setFunc = list(range(1)) #定義演算法
+setFunc = list(range(1))  # 定義演算法
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
 SPACESIZE = 50
@@ -171,34 +48,7 @@ class Mode(Enum):
     SECOND = 'second'
     AUTO = 'auto'
 
-#演算法工廠
-class Algorithm_Factory(object):
-    #建構子
-    def __init__(self,pFunc,pUserTitle,pPossibleMoves,pBoard):
-        self.position = None
-        if pUserTitle == BLACK_TILE:
-            pUserTitle = 1
-        else:
-            pUserTitle = 0
-        pBoard = self.getBoardArray(pBoard)
-        if pFunc == 0:
-            self.position = Algorithm_1(pUserTitle,pPossibleMoves,pBoard).getPosition()
-        else:
-            self.position = Algorithm_1(pUserTitle,pPossibleMoves,pBoard).getPosition()
-    #取得位置
-    def getPosition(self):
-        return self.position
-    #取得棋盤array陣列 0:白棋 1:黑棋
-    def getBoardArray(self,pBoard):
-        for x in range(8):
-            for y in range(8):
-                if not pBoard[x][y] == EMPTY_SPACE: 
-                    if pBoard[x][y] == BLACK_TILE:
-                        pBoard[x][y] = 1
-                    else:
-                        pBoard[x][y] = 0
-        return pBoard
-                        
+
 def main():
     global MAINCLOCK, DISPLAYSURF, FONT, BIGFONT, BGIMAGE
 
@@ -219,7 +69,7 @@ def main():
     BGIMAGE.blit(boardImage, boardImageRect)
 
     while True:
-        if runGame() == False:
+        if runGame() is False:
             break
 
 
@@ -256,10 +106,10 @@ def runGame():
     currentXY = None
     while True:
         if turn == Role.PLAYER_1 and not isAuto:
-            if getValidMoves(mainBoard, playerOneTile) == []:
+            if len(getValidMoves(mainBoard, playerOneTile)) == 0:
                 break
             movexy = None
-            while movexy == None:
+            while movexy is None:
                 if showHints:
                     boardToDraw = getBoardWithValidMoves(mainBoard, playerOneTile)
                 else:
@@ -275,7 +125,7 @@ def runGame():
                             showHints = not showHints
 
                         movexy = getSpaceClicked(mousex, mousey)
-                        if movexy != None and not isValidMove(mainBoard, playerOneTile, movexy[0], movexy[1]):
+                        if movexy is None and not isValidMove(mainBoard, playerOneTile, movexy[0], movexy[1]):
                             movexy = None
                 if movexy is not None:
                     currentXY = movexy
@@ -290,7 +140,7 @@ def runGame():
                 pygame.display.update()
 
             makeMove(mainBoard, playerOneTile, movexy[0], movexy[1], True)
-            if getValidMoves(mainBoard, playerTwoTile) != []:
+            if len(getValidMoves(mainBoard, playerTwoTile)) != 0:
                 turn = Role.PLAYER_2
         else:
             if turn == Role.PLAYER_1:
@@ -317,16 +167,16 @@ def runGame():
             x, y = getComputerMove(mainBoard, tile)
             currentXY = (x, y)
             makeMove(mainBoard, tile, x, y, True)
-            if getValidMoves(mainBoard, playerOneTile) != []:
+            if len(getValidMoves(mainBoard, playerOneTile)) != 0:
                 turn = turnOther
 
     drawBoard(mainBoard)
     scores = getScoreOfBoard(mainBoard)
 
     if scores[playerOneTile] > scores[playerTwoTile]:
-        text = 'player1 beat the player2 by %s points.' %                (scores[playerOneTile] - scores[playerTwoTile])
+        text = 'player1 beat the player2 by %s points.' % (scores[playerOneTile] - scores[playerTwoTile])
     elif scores[playerOneTile] < scores[playerTwoTile]:
-        text = 'player2 beat the player1 by %s points.' %                (scores[playerTwoTile] - scores[playerOneTile])
+        text = 'player2 beat the player1 by %s points.' % (scores[playerTwoTile] - scores[playerOneTile])
     else:
         text = 'The game was a tie!'
 
@@ -538,7 +388,7 @@ def getScoreOfBoard(board):
 def makeMove(board, tile, xstart, ystart, realMove=False):
     tilesToFlip = isValidMove(board, tile, xstart, ystart)
 
-    if tilesToFlip == False:
+    if tilesToFlip is False:
         return False
 
     board[xstart][ystart] = tile
@@ -600,7 +450,7 @@ def getComputerMove(board, computerTile):
     # 獲取所有合法走法
     possibleMoves = getValidMoves(board, computerTile)
     dupeBoard = getBoardCopy(board)
-    bestMove = Algorithm_Factory(setFunc[0],computerTile,possibleMoves,dupeBoard).getPosition()
+    bestMove = AlgorithmFactory(setFunc[0], computerTile, possibleMoves, dupeBoard).getPosition()
     return bestMove
 
 
@@ -619,15 +469,16 @@ def getBoardWithValidMoves(board, tile):
 def getSpaceClicked(mousex, mousey):
     for x in range(BOARDWIDTH):
         for y in range(BOARDHEIGHT):
-            if x * SPACESIZE + XMARGIN < mousex < (x + 1) * SPACESIZE + XMARGIN and                     y * SPACESIZE + YMARGIN < mousey < (y + 1) * SPACESIZE + YMARGIN:
+            if x * SPACESIZE + XMARGIN < mousex < (x + 1) * SPACESIZE + XMARGIN and \
+                    y * SPACESIZE + YMARGIN < mousey < (y + 1) * SPACESIZE + YMARGIN:
                 return x, y
     return None
 
 
 def drawInfo(board, playerTile, computerTile, turn):
     scores = getScoreOfBoard(board)
-    scoreSurf = FONT.render("Player Score: %s    Computer Score: %s    %s's Turn" % (
-    str(scores[playerTile]), str(scores[computerTile]), turn.value), True, TEXTCOLOR)
+    scoreSurf = FONT.render("Player Score: %s    Computer Score: %s    %s's Turn" %
+                            (str(scores[playerTile]), str(scores[computerTile]), turn.value), True, TEXTCOLOR)
     scoreRect = scoreSurf.get_rect()
     scoreRect.bottomleft = (10, WINDOWHEIGHT - 5)
     DISPLAYSURF.blit(scoreSurf, scoreRect)
@@ -642,14 +493,3 @@ def checkForQuit():
 
 if __name__ == '__main__':
     main()
-
-
-# In[ ]:
-
-
-
-
-# In[ ]:
-
-
-

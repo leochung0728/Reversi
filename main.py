@@ -79,6 +79,8 @@ def runGame():
     isAuto = False
     showHints = False
 
+    drawBoard(mainBoard)
+
     sel = sideSelect()
     if sel == Mode.FIRST:
         turn = Role.PLAYER_1
@@ -93,8 +95,6 @@ def runGame():
         playerOneTile = BLACK_TILE
         playerTwoTile = WHITE_TILE
         isAuto = True
-
-    drawBoard(mainBoard)
 
     newGameSurf = FONT.render('New Game', True, TEXTCOLOR, TEXTBGCOLOR2)
     newGameRect = newGameSurf.get_rect()

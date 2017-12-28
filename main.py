@@ -3,7 +3,6 @@ from enum import Enum
 from pygame.locals import *
 from ai_factory import AlgorithmFactory
 
-setFunc = list(range(1))  # 定義演算法
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
 SPACESIZE = 50
@@ -78,6 +77,7 @@ def runGame():
     resetBoard(mainBoard)
     isAuto = False
     showHints = False
+    aiFunc = [0, 1]
 
     drawBoard(mainBoard)
 
@@ -125,7 +125,7 @@ def runGame():
                             showHints = not showHints
 
                         movexy = getSpaceClicked(mousex, mousey)
-                        if movexy is None and not isValidMove(mainBoard, playerOneTile, movexy[0], movexy[1]):
+                        if movexy is not None and not isValidMove(mainBoard, playerOneTile, movexy[0], movexy[1]):
                             movexy = None
                 if movexy is not None:
                     currentXY = movexy
@@ -146,9 +146,11 @@ def runGame():
             if turn == Role.PLAYER_1:
                 turnOther = Role.PLAYER_2
                 tile = playerOneTile
+                useFunc = aiFunc[0]
             else:
                 turnOther = Role.PLAYER_1
                 tile = playerTwoTile
+                useFunc = aiFunc[1]
 
             if len(getValidMoves(mainBoard, tile)) == 0:
                 break
@@ -164,7 +166,7 @@ def runGame():
             #     pygame.display.update()
             pygame.display.update()
 
-            x, y = getComputerMove(mainBoard, tile)
+            x, y = getComputerMove(mainBoard, tile, useFunc)
             currentXY = (x, y)
             makeMove(mainBoard, tile, x, y, True)
             if len(getValidMoves(mainBoard, playerOneTile)) != 0:
@@ -416,6 +418,7 @@ def animateTileChange(tilesToFlip, tileColor, additionalTile):
         elif rgbValues < 0:
             rgbValues = 0
 
+        color = None
         if tileColor == WHITE_TILE:
             color = tuple([rgbValues] * 3)
         elif tileColor == BLACK_TILE:
@@ -446,11 +449,11 @@ def isOnCorner(x, y):
 
 
 # AI
-def getComputerMove(board, computerTile):
+def getComputerMove(board, computerTile, useFunc=0):
     # 獲取所有合法走法
     possibleMoves = getValidMoves(board, computerTile)
     dupeBoard = getBoardCopy(board)
-    bestMove = AlgorithmFactory(setFunc[0], computerTile, possibleMoves, dupeBoard).getPosition()
+    bestMove = AlgorithmFactory(useFunc, computerTile, possibleMoves, dupeBoard).getPosition()
     return bestMove
 
 

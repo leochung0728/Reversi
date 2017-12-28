@@ -2,6 +2,7 @@ import pygame, sys, copy
 from enum import Enum
 from pygame.locals import *
 from ai_factory import AlgorithmFactory
+from  ai_algorithm import Algorithm_1, Algorithm_2
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -77,7 +78,6 @@ def runGame():
     resetBoard(mainBoard)
     isAuto = False
     showHints = False
-    aiFunc = [0, 1]
 
     drawBoard(mainBoard)
 
@@ -146,11 +146,11 @@ def runGame():
             if turn == Role.PLAYER_1:
                 turnOther = Role.PLAYER_2
                 tile = playerOneTile
-                useFunc = aiFunc[0]
+                useMethod = Algorithm_1
             else:
                 turnOther = Role.PLAYER_1
                 tile = playerTwoTile
-                useFunc = aiFunc[1]
+                useMethod = Algorithm_2
 
             if len(getValidMoves(mainBoard, tile)) == 0:
                 break
@@ -166,7 +166,7 @@ def runGame():
             #     pygame.display.update()
             pygame.display.update()
 
-            x, y = getComputerMove(mainBoard, tile, useFunc)
+            x, y = getComputerMove(mainBoard, tile, useMethod)
             currentXY = (x, y)
             makeMove(mainBoard, tile, x, y, True)
             if len(getValidMoves(mainBoard, playerOneTile)) != 0:
@@ -449,11 +449,11 @@ def isOnCorner(x, y):
 
 
 # AI
-def getComputerMove(board, computerTile, useFunc=0):
+def getComputerMove(board, tile, useMethod):
     # 獲取所有合法走法
-    possibleMoves = getValidMoves(board, computerTile)
+    possibleMoves = getValidMoves(board, tile)
     dupeBoard = getBoardCopy(board)
-    bestMove = AlgorithmFactory(useFunc, computerTile, possibleMoves, dupeBoard).getPosition()
+    bestMove = AlgorithmFactory(dupeBoard, tile, useMethod).getBestMove()
     return bestMove
 
 

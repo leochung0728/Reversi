@@ -7,7 +7,7 @@ WINDOWHEIGHT = 480
 SPACESIZE = 50
 BOARDWIDTH = 8
 BOARDHEIGHT = 8
-ANIMATIONSPEED = 50
+ANIMATIONSPEED = 400
 FPS = 10
 
 XMARGIN = int((WINDOWWIDTH - (BOARDWIDTH * SPACESIZE)) / 2)
@@ -55,7 +55,7 @@ def main():
     DISPLAYSURF = pygame.display.set_mode((WINDOWWIDTH, WINDOWHEIGHT))
     pygame.display.set_caption('Reversi')
     FONT = pygame.font.Font('freesansbold.ttf', 16)
-    BIGFONT = pygame.font.Font('freesansbold.ttf', 32)
+    BIGFONT = pygame.font.Font('freesansbold.ttf', 24)
 
     boardImage = pygame.image.load('./img/board.png')
     boardImage = pygame.transform.smoothscale(boardImage, (BOARDWIDTH * SPACESIZE, BOARDHEIGHT * SPACESIZE))
@@ -238,12 +238,17 @@ def sideSelect():
     # First
     xSurf = BIGFONT.render('First', True, TEXTCOLOR, TEXTBGCOLOR1)
     xRect = xSurf.get_rect()
-    xRect.center = (int(WINDOWWIDTH / 2) - 60, int(WINDOWHEIGHT / 2) + 40)
+    xRect.center = (int(WINDOWWIDTH / 2) - 100, int(WINDOWHEIGHT / 2) + 40)
 
     # Second
     oSurf = BIGFONT.render('Second', True, TEXTCOLOR, TEXTBGCOLOR1)
     oRect = oSurf.get_rect()
-    oRect.center = (int(WINDOWWIDTH / 2) + 60, int(WINDOWHEIGHT / 2) + 40)
+    oRect.center = (int(WINDOWWIDTH / 2), int(WINDOWHEIGHT / 2) + 40)
+
+    # Auto
+    aSurf = BIGFONT.render('Auto', True, TEXTCOLOR, TEXTBGCOLOR1)
+    aRect = aSurf.get_rect()
+    aRect.center = (int(WINDOWWIDTH / 2) + 100, int(WINDOWHEIGHT / 2) + 40)
 
     while True:
         checkForQuit()
@@ -254,10 +259,13 @@ def sideSelect():
                     return Mode.FIRST
                 elif oRect.collidepoint((mousex, mousey)):
                     return Mode.SECOND
+                elif aRect.collidepoint((mousex, mousey)):
+                    return Mode.AUTO
 
         DISPLAYSURF.blit(textSurf, textRect)
         DISPLAYSURF.blit(xSurf, xRect)
         DISPLAYSURF.blit(oSurf, oRect)
+        DISPLAYSURF.blit(aSurf, aRect)
         pygame.display.update()
         MAINCLOCK.tick(FPS)
 

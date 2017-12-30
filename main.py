@@ -2,7 +2,7 @@ import pygame, sys, copy
 from enum import Enum
 from pygame.locals import *
 from ai_factory import AlgorithmFactory
-from  ai_algorithm import Algorithm_1, Algorithm_2
+from  ai_algorithm import Algorithm_1, Algorithm_2, Algorithm_3, Algorithm_4
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -152,12 +152,12 @@ def runGame():
                 turnOther = Role.PLAYER_2
                 tile = playerOneTile
                 tileOther = playerTwoTile
-                useMethod = Algorithm_1
+                useMethod = Algorithm_4
             else:
                 turnOther = Role.PLAYER_1
                 tile = playerTwoTile
                 tileOther = playerOneTile
-                useMethod = Algorithm_2
+                useMethod = Algorithm_1
 
             if len(getValidMoves(mainBoard, tile)) == 0:
                 if len(getValidMoves(mainBoard, tileOther)) == 0:
@@ -462,7 +462,6 @@ def isOnCorner(x, y):
 # AI
 def getComputerMove(board, tile, useMethod):
     # 獲取所有合法走法
-    possibleMoves = getValidMoves(board, tile)
     dupeBoard = getBoardCopy(board)
     bestMove = AlgorithmFactory(dupeBoard, tile, useMethod).getBestMove()
     return bestMove

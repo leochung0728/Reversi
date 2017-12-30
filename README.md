@@ -16,3 +16,4 @@
 
 # 黑白棋 课程设计 + AI
 # https://github.com/im0qianqian/Reversi
+# https://github.com/cloudzfy/ai-course/wiki/Homework-%232:-Adversarial-Search

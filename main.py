@@ -1,8 +1,8 @@
-import pygame, sys, copy
+import pygame, sys
 from enum import Enum
 from pygame.locals import *
 from ai_factory import AlgorithmFactory
-from  ai_algorithm import Algorithm_1, Algorithm_2, Algorithm_3, Algorithm_4
+from  ai_algorithm import *
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -157,7 +157,7 @@ def runGame():
                 turnOther = Role.PLAYER_1
                 tile = playerTwoTile
                 tileOther = playerOneTile
-                useMethod = Algorithm_1
+                useMethod = Algorithm_5
 
             if len(getValidMoves(mainBoard, tile)) == 0:
                 if len(getValidMoves(mainBoard, tileOther)) == 0:

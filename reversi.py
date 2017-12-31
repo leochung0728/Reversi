@@ -92,8 +92,7 @@ def makeMove(board, tile, xstart, ystart):
 
 def getPossibleConvertions(board, tile, possibleMoves):
     result = 0
-    if len(getValidMoves(board, tile)) > 0:
-        for x, y in getValidMoves(board, tile):
-            invertCount = isValidMove(board, tile, x, y)
-            result += len(invertCount)
+    for x, y in possibleMoves:
+        invertCount = isValidMove(board, tile, x, y)
+        result += len(invertCount)
     return result

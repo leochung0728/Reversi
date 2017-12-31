@@ -1,5 +1,7 @@
 import random, copy
+import itertools
 import pandas as pd
+import numpy as np
 from reversi import *
 
 
@@ -109,7 +111,7 @@ class Algorithm_3(object):
 
         if depth == 0 or len(getValidMoves(board, tile)) == 0:
             return self.evalBoard(board, tile)
-        print(depth)
+
         if maximizingPlayer:
             bestValue = self.minEvalBoard
             for x in range(8):
@@ -128,34 +130,22 @@ class Algorithm_3(object):
                         makeMove(boardTemp, tile, x, y)
                         v = self.minimax(boardTemp, tile, depth - 1, True)
                         bestValue = min(bestValue, v)
-        print(bestValue)
         return bestValue
 
 
 # AlphaBeta
 class Algorithm_4(object):
 
-    # evalTable = [
-    #     [ 20,  -5,  10,   5,   5,  10,  -5,  20],
-    #     [ -5, -10,   1,   1,   1,   1, -10,  -5],
-    #     [ 10,   1,  50,   1,   1,  50,   1,  10],
-    #     [ 10,   1,   1,   1,   1,   1,   1,   5],
-    #     [ 10,   1,   1,   1,   1,   1,   1,   5],
-    #     [ 10,   1,  50,   1,   1,  50,   1,  10],
-    #     [ -5, -10,   1,   1,   1,   1, -10,  -5],
-    #     [ 20,  -5,  10,   5,   5,  10,  -5,  20],
-    # ]
-
     def __init__(self, board, tile):
         self.board = board
         self.tile = tile
-        self.depth = 1
-        self.minEvalBoard = -1
-        self.maxEvalBoard = 101  # n^2+4n+4+1, n=8
+        self.depth = 2
+        self.minEvalBoard = -5  # float('-inf')
+        self.maxEvalBoard = 20  # float('inf')
         self.maximizingPlayer = True
 
     def getBestMove(self):
-        maxPoints = 0
+        maxPoints = float('-inf')
         bestMove = None
         for x in range(8):
             for y in range(8):
@@ -182,48 +172,100 @@ class Algorithm_4(object):
                 addend = -addend
             return result + addend
         else:
-            mobility = getPossibleConvertions(board, tile, possibleMoves) - getPossibleConvertions(board, oppositeTile,
-                                                                                                   oppositePossibleMoves)
-            return mobility
+            mobility = getPossibleConvertions(board, tile, possibleMoves) - getPossibleConvertions(board, oppositeTile, oppositePossibleMoves)
+            stability = self.getStableDiscsCount(board, tile) - self.getStableDiscsCount(board, oppositeTile) * 8 * 2 / 3
+            return mobility + stability
 
-    def alphabeta(self, board=None, tile=None, depth=None, alpha=None, beta=None, maximizingPlayer=None):
-        if board is None:
-            board = self.board
-        if tile is None:
-            tile = self.tile
-        if depth is None:
-            depth = self.depth
-        if alpha is None:
-            alpha = self.minEvalBoard
-        if beta is None:
-            beta = self.maxEvalBoard
-        if maximizingPlayer is None:
-            maximizingPlayer = self.maximizingPlayer
-
+    def alphabeta(self, board, tile, depth, alpha, beta, maximizingPlayer):
         if depth == 0 or len(getValidMoves(board, tile)) == 0:
             return self.evalBoard(board, tile)
 
-        v = None
+        otherTile = 0 if tile == 1 else 1
+
         if maximizingPlayer:
-            v = alpha
+            val = alpha
             for x, y in getValidMoves(board, tile):
                 boardTemp = copy.deepcopy(board)
                 makeMove(boardTemp, tile, x, y)
-                v = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, False)
-                v = max(alpha, v)
-                if v >= beta:
+                valTemp = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, False)
+                val = max(val, valTemp)
+                if val >= beta:
                     break
         else:
-            v = beta
-            for x, y in getValidMoves(board, tile):
+            val = beta
+            for x, y in getValidMoves(board, otherTile):
                 boardTemp = copy.deepcopy(board)
-                makeMove(boardTemp, tile, x, y)
-                v = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, True)
-                v = min(beta, v)
-                if v <= alpha:
+                makeMove(boardTemp, otherTile, x, y)
+                valTemp = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, True)
+                val = min(val, valTemp)
+                if val <= alpha:
                     break
-        print(v)
-        return v
+        return val
+
+    def getStableDiscsCount(self, board, tile):
+        return self.getStableDiscsFromCorner(board, tile) + \
+               self.getStableDiscsFromEdge(board, tile)
+
+    @staticmethod
+    def getStableDiscsFromCorner(board, tile):
+        starts = [(0, 0), (0, 7), (7, 0), (7, 7)]
+        result = 0
+        for start in starts:
+            startX, startY = start
+            rowIndexChange = 1 if startY == 0 else -1
+            colIndexChange = 1 if startX == 0 else -1
+            rowIndexLimit = 8 if startY == 0 else 0
+            colIndexLimit = 8 if startX == 0 else 0
+
+            for rowIndex in np.arange(startY, rowIndexLimit, rowIndexChange):
+                for colIndex in np.arange(startX, colIndexLimit, colIndexChange):
+                    if board[rowIndex][colIndex] == tile:
+                        result += 1
+                    else:
+                        break
+                if (colIndexChange > 0 and colIndex < 8) or (colIndexChange < 0 and colIndex > 0):
+                    colIndexLimit = colIndex - colIndexChange
+                    if colIndexChange > 0 and colIndexLimit == 0:
+                        colIndexLimit += 1
+                    elif colIndexChange < 0 and colIndexLimit == 7:
+                        colIndexLimit -= 1
+
+                    if (colIndexChange > 0 and colIndexLimit < 0) or (colIndexChange < 0 and colIndexLimit > 7):
+                        break
+        return result
+
+    def getStableDiscsFromEdge(self, board, tile):
+        coordinates = [0, 7]
+        isHorizontals = [True, False]
+        result = 0
+        for coordinate, isHorizontal in list(itertools.product(coordinates, isHorizontals)):
+            if self.isEdgeFull(board, coordinate, isHorizontal):
+                oppositeTileDiscsPassed = False
+
+                for otherCoordinate in range(0, 8):
+                    fieldtile = board[coordinate][otherCoordinate] if isHorizontal else board[otherCoordinate][coordinate]
+                    if fieldtile == tile:
+                        oppositeTileDiscsPassed = True
+                    elif oppositeTileDiscsPassed:
+                        consecutiveDiscsCount = 0
+                        while otherCoordinate < 8 and fieldtile == tile:
+                            consecutiveDiscsCount += 1
+                            otherCoordinate += 1
+                            if otherCoordinate < 8:
+                                fieldtile = board[coordinate][otherCoordinate] if isHorizontal else board[otherCoordinate][coordinate]
+
+                        if otherCoordinate != 8:
+                            result += consecutiveDiscsCount
+                            oppositeTileDiscsPassed = True
+        return result
+
+    @staticmethod
+    def isEdgeFull(board, coordinate, isHorizontal):
+        for otherCoordinate in range(0, 8):
+            if (isHorizontal and board[coordinate][otherCoordinate] is None) or (not isHorizontal and board[otherCoordinate][coordinate] is None):
+                return False
+        return True
+
 
 class Algorithm_5(object):
     def __init__(self, board, tile):

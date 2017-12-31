@@ -139,23 +139,22 @@ class Algorithm_4(object):
     def __init__(self, board, tile):
         self.board = board
         self.tile = tile
-        self.depth = 2
+        self.depth = 3
         self.minEvalBoard = -5  # float('-inf')
-        self.maxEvalBoard = 20  # float('inf')
+        self.maxEvalBoard = 10  # float('inf')
         self.maximizingPlayer = True
 
     def getBestMove(self):
         maxPoints = float('-inf')
         bestMove = None
-        for x in range(8):
-            for y in range(8):
-                if isValidMove(self.board, self.tile, x, y):
-                    boardTemp = copy.deepcopy(self.board)
-                    points = self.alphabeta(boardTemp, self.tile, self.depth, self.minEvalBoard, self.maxEvalBoard,
-                                            self.maximizingPlayer)
-                    if points > maxPoints:
-                        maxPoints = points
-                        bestMove = [x, y]
+        for x, y in getValidMoves(self.board, self.tile):
+            boardTemp = copy.deepcopy(self.board)
+            makeMove(boardTemp, self.tile, x, y)
+            points = self.alphabeta(boardTemp, self.tile, self.depth, self.minEvalBoard, self.maxEvalBoard,
+                                    not self.maximizingPlayer)
+            if points > maxPoints:
+                maxPoints = points
+                bestMove = [x, y]
         return bestMove
 
     def evalBoard(self, board, tile):
@@ -188,8 +187,10 @@ class Algorithm_4(object):
                 boardTemp = copy.deepcopy(board)
                 makeMove(boardTemp, tile, x, y)
                 valTemp = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, False)
+                print(valTemp)
                 val = max(val, valTemp)
                 if val >= beta:
+                    print("cut")
                     break
         else:
             val = beta

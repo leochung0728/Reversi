@@ -2,7 +2,9 @@ import pygame, sys
 from enum import Enum
 from pygame.locals import *
 from ai_factory import AlgorithmFactory
-from  ai_algorithm import *
+from ai_algorithm import *
+
+AI_DEFAULT = [Algorithm_5, Algorithm_4]
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480
@@ -77,7 +79,7 @@ def runGame():
     mainBoard = getNewBoard()
     resetBoard(mainBoard)
     isAuto = False
-    showHints = False
+    showHints = True
 
     drawBoard(mainBoard)
 
@@ -152,12 +154,17 @@ def runGame():
                 turnOther = Role.PLAYER_2
                 tile = playerOneTile
                 tileOther = playerTwoTile
-                useMethod = Algorithm_4
+                useMethod = AI_DEFAULT[0]
             else:
                 turnOther = Role.PLAYER_1
                 tile = playerTwoTile
                 tileOther = playerOneTile
-                useMethod = Algorithm_5
+                useMethod = AI_DEFAULT[1]
+
+            if showHints:
+                boardToDraw = getBoardWithValidMoves(mainBoard, tile)
+            else:
+                boardToDraw = mainBoard
 
             if len(getValidMoves(mainBoard, tile)) == 0:
                 if len(getValidMoves(mainBoard, tileOther)) == 0:
@@ -166,8 +173,8 @@ def runGame():
                     turn = turnOther
                     continue
 
-            drawBoard(mainBoard, currentXY)
-            drawInfo(mainBoard, playerOneTile, playerTwoTile, turn)
+            drawBoard(boardToDraw, currentXY)
+            drawInfo(boardToDraw, playerOneTile, playerTwoTile, turn)
 
             DISPLAYSURF.blit(newGameSurf, newGameRect)
             DISPLAYSURF.blit(hintsSurf, hintsRect)

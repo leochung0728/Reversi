@@ -380,6 +380,7 @@ class Board(list):
     def Clone(self):
         return copy.deepcopy(self)
 
+Algorithm_6_MaxDepth = 7 #2-7
 class Algorithm_6(object):
     #建構子
     def __init__(self, board, tile):
@@ -389,7 +390,7 @@ class Algorithm_6(object):
         self.resultColumnIndex = 0
         self.MAX_BOARD_VALUE = sys.maxsize
         self.MIN_BOARD_VALUE = - self.MAX_BOARD_VALUE
-        self.MaxDepth = 7
+        self.MaxDepth = Algorithm_6_MaxDepth
     #取得最佳路線
     def getBestMove(self):
         self.GetNextMove(self.board,True,1,self.MIN_BOARD_VALUE,self.MAX_BOARD_VALUE)

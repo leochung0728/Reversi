@@ -337,10 +337,26 @@ class Board(list):
                                 return True
         return False
     
-    def CheckDirection(sef,rowIndex,columnIndex,rowIndexChange,columnIndexChange,color):
+    def CheckDirection(self,rowIndex,columnIndex,rowIndexChange,columnIndexChange,color):
         areOpositeColorDiscsFound = False
         rowIndex += rowIndexChange
         columnIndex += columnIndexChange
+        while rowIndex >= 0 and rowIndex < self.Size and columnIndex >= 0 and columnIndex < self.Size:
+            if areOpositeColorDiscsFound:
+                if self[columnIndex][rowIndex] == color:
+                    return True
+                elif self[columnIndex][rowIndex] == None:
+                    return False
+            else:
+                opositeColor = Algorithm_6.GetOpposite(color)
+                if self[columnIndex][rowIndex] == opositeColor:
+                    areOpositeColorDiscsFound = True
+                else:
+                    return False
+            rowIndex += rowIndexChange
+            columnIndex += columnIndexChange
+
+        return False
 
     def CanSetAnyField(self,color):
         for rowIndex in range(self.Size):
@@ -386,7 +402,7 @@ class Algorithm_6(object):
         self.tile = tile
         self.resultRowIndex = 0
         self.resultColumnIndex = 0
-        self.MAX_BOARD_VALUE = sys.maxsize
+        self.MAX_BOARD_VALUE = 2147483647
         self.MIN_BOARD_VALUE = - self.MAX_BOARD_VALUE
         self.MaxDepth = Algorithm_6_MaxDepth
     #取得最佳路線
@@ -460,7 +476,7 @@ class Algorithm_6(object):
     
     #取得路徑
     def GetPossibleMoves(self,board,color):
-        return getValidMoves(board, color)
+        return getValidMoves(board, color) 
 
     def EvaluateBoard(self,board):
         color = self.tile
@@ -489,7 +505,15 @@ class Algorithm_6(object):
         return result
 
     def GetStableDiscsCount(self,board,color):
-        return self.GetStableDiscsFromCorner(board, color, 0, 0)  + self.GetStableDiscsFromCorner(board, color, 0, board.Size - 1) + self.GetStableDiscsFromCorner(board, color, board.Size - 1, 0) +self.GetStableDiscsFromCorner(board, color, board.Size - 1, board.Size - 1) +self.GetStableDiscsFromEdge(board, color, 0, True) +self.GetStableDiscsFromEdge(board, color, board.Size - 1, True) +self.GetStableDiscsFromEdge(board, color, 0, False) + self.GetStableDiscsFromEdge(board, color, board.Size - 1, False)
+        pCa = self.GetStableDiscsFromCorner(board, color, 0, 0)
+        pCb = self.GetStableDiscsFromCorner(board, color, 0, board.Size - 1)
+        pCc = self.GetStableDiscsFromCorner(board, color, board.Size - 1, 0)
+        pCd = self.GetStableDiscsFromCorner(board, color, board.Size - 1, board.Size - 1)
+        pCe = self.GetStableDiscsFromEdge(board, color, 0, False)
+        pCf = self.GetStableDiscsFromEdge(board, color, board.Size - 1, False)
+        pCg = self.GetStableDiscsFromEdge(board, color, 0, True)
+        pCh = self.GetStableDiscsFromEdge(board, color, board.Size - 1, True)
+        return pCa  + pCb +pCc + pCd + pCe + pCf + pCg + pCh
     
     def GetStableDiscsFromCorner(self,board,color,cornerRowIndex,cornerColumnIndex):
         result = 0
@@ -525,7 +549,7 @@ class Algorithm_6(object):
         if self.IsEdgeFull(board, edgeCoordinate, isHorizontal):
             oppositeColorDiscsPassed = False
             for otherCoordinate in range(board.Size):
-                fieldColor = board[otherCoordinate][edgeCoordinate] if isHorizontal else board[edgeCoordinate][edgeCoordinate]
+                fieldColor = board[otherCoordinate][edgeCoordinate] if isHorizontal else board[edgeCoordinate][otherCoordinate]
                 if fieldColor != color:
                     oppositeColorDiscsPassed = True
                 elif oppositeColorDiscsPassed:
@@ -534,7 +558,7 @@ class Algorithm_6(object):
                         consecutiveDiscsCount = consecutiveDiscsCount +1
                         otherCoordinate = otherCoordinate +1
                         if otherCoordinate < board.Size:
-                            fieldColor = board[otherCoordinate][edgeCoordinate] if isHorizontal else board[edgeCoordinate][edgeCoordinate]
+                            fieldColor = board[otherCoordinate][edgeCoordinate] if isHorizontal else board[edgeCoordinate][otherCoordinate]
                     if otherCoordinate != board.Size:
                         result += consecutiveDiscsCount
                         oppositeColorDiscsPassed = True

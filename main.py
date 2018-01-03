@@ -4,7 +4,7 @@ from pygame.locals import *
 from ai_factory import AlgorithmFactory
 from ai_algorithm import *
 
-AI_DEFAULT = [Algorithm_5, Algorithm_4]
+AI_DEFAULT = [Algorithm_4, Algorithm_6]
 
 WINDOWWIDTH = 640
 WINDOWHEIGHT = 480

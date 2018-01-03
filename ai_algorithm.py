@@ -1,4 +1,6 @@
 import random, copy
+import sys
+import math
 import itertools
 import pandas as pd
 import numpy as np
@@ -187,10 +189,10 @@ class Algorithm_4(object):
                 boardTemp = copy.deepcopy(board)
                 makeMove(boardTemp, tile, x, y)
                 valTemp = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, False)
-                print(valTemp)
+                #print(valTemp)
                 val = max(val, valTemp)
                 if val >= beta:
-                    print("cut")
+                    #print("cut")
                     break
         else:
             val = beta
@@ -267,7 +269,6 @@ class Algorithm_4(object):
                 return False
         return True
 
-
 class Algorithm_5(object):
     def __init__(self, board, tile):
         self.board = board
@@ -305,3 +306,243 @@ class Algorithm_5(object):
                 nowScore = source
                 BestScore = [x, y, source]
         return nowScore
+
+#棋盤物件
+class Board(list):
+    def __init__(self, board):
+        list.__init__([])
+        self.extend(board)
+        self.DEFAULT_BOARD_SIZE = 8
+        self.Size = self.DEFAULT_BOARD_SIZE
+        self.mInvertedDiscsLastMove = 0
+        self.InvertedDiscsLastMove = self.mInvertedDiscsLastMove 
+        self.mFieldColors = []
+        for rowIndex in range(self.Size):
+            for columnIndex in range(self.Size):
+                self.mFieldColors.append(self[rowIndex])
+
+    def SetFieldColor(self,rowIndex,columnIndex,color):
+        if self.CanSetFieldColor(rowIndex,columnIndex,color):
+            self.mFieldColors[columnIndex][rowIndex] = color
+            self.InvertOpponentDisks(rowIndex,columnIndex,color)
+
+    def CanSetFieldColor(self,rowIndex,columnIndex,color):
+        hasColor = True if self[columnIndex][rowIndex] != None else False
+        if not hasColor:
+            if color == None:
+                return True
+            else:
+                for rowIndexChange in range(-1,2):
+                    for columnIndexChange in range(-1,2):
+                        if rowIndexChange != 0 or columnIndexChange != 0:
+                            if self.CheckDirection(rowIndex,columnIndex,rowIndexChange,columnIndexChange,color):
+                                return True
+        return False
+    
+    def CheckDirection(sef,rowIndex,columnIndex,rowIndexChange,columnIndexChange,color):
+        areOpositeColorDiscsFound = False
+        rowIndex += rowIndexChange
+        columnIndex += columnIndexChange
+
+    def CanSetAnyField(self,color):
+        for rowIndex in range(self.Size):
+            for columnIndex in range(self.Size):
+                if self.CanSetFieldColor(rowIndex,columnIndex,color):
+                    return True
+        return True
+    
+    def GetDiscsCount(self,color):
+        result = 0
+        for rowIndex in range(self.Size):
+            for columnIndex in range(self.Size):
+                if self[columnIndex][rowIndex] == color:
+                    result = result + 1
+        return result
+
+    def InvertOpponentDisks(self,rowIndex,columnIndex,color):
+        self.invertedDiscsCount = 0
+        for rowIndexChange in range(-1,2):
+            for columnIndexChange in range(-1,2):
+                if rowIndexChange != 0 or columnIndexChange != 0:
+                   if self.CheckDirection(rowIndex,columnIndex,rowIndexChange, columnIndexChange, color):
+                       self.InvertDirection(rowIndex, columnIndex, rowIndexChange, columnIndexChange, color)
+
+    def InvertDirection(self,rowIndex,columnIndex,rowIndexChange,columnIndexChange,color):
+        opositeColor = Algorithm_6.GetOpposite(color)
+        rowIndex += rowIndexChange
+        columnIndex += columnIndexChange
+        while self[columnIndex][rowIndex] == opositeColor:
+             self.mFieldColors[columnIndex][rowIndex] = color
+             self.invertedDiscsCount = self.invertedDiscsCount + 1
+             rowIndex += rowIndexChange
+             columnIndex += columnIndexChange
+    
+    def Clone(self):
+        return copy.deepcopy(self)
+
+class Algorithm_6(object):
+    #建構子
+    def __init__(self, board, tile):
+        self.board = Board(board)
+        self.tile = tile
+        self.resultRowIndex = 0
+        self.resultColumnIndex = 0
+        self.MAX_BOARD_VALUE = sys.maxsize
+        self.MIN_BOARD_VALUE = - self.MAX_BOARD_VALUE
+        self.MaxDepth = 7
+    #取得最佳路線
+    def getBestMove(self):
+        self.GetNextMove(self.board,True,1,self.MIN_BOARD_VALUE,self.MAX_BOARD_VALUE)
+        return [self.resultColumnIndex,self.resultRowIndex]
+    
+    #取得下一步路線
+    def GetNextMove(self,board,isMaximizing,currentDepth,alpha,beta):
+        self.resultRowIndex = 0
+        self.resultColumnIndex = 0
+
+        color = self.tile if isMaximizing else self.GetOpposite(self.tile)
+        playerSkipsMove = False
+        possibleMoves = None
+        isFinalMove = (currentDepth >= self.MaxDepth)
+        if not isFinalMove:
+            possibleMoves = self.GetPossibleMoves(board, color)
+            if len(possibleMoves) == 0:
+                playerSkipsMove = True
+                possibleMoves = self.GetPossibleMoves(board, self.GetOpposite(color))
+            isFinalMove = (len(possibleMoves) == 0)
+        if isFinalMove:
+            self.resultRowIndex = -1
+            self.resultColumnIndex = -1
+            return self.EvaluateBoard(board)
+        else:
+            bestBoardValue = self.MIN_BOARD_VALUE if isMaximizing else self.MAX_BOARD_VALUE
+            bestMoveRowIndex = -1
+            bestMoveColumnIndex = -1
+            for nextMove in possibleMoves:
+                rowIndex = nextMove[1]
+                columnIndex = nextMove[0]
+                nextBoard = board.Clone()
+                nextBoard.SetFieldColor(rowIndex,columnIndex,color)
+
+                nextIsMaximizing = isMaximizing if playerSkipsMove else  not isMaximizing
+                #dummyIndex # values of resultRowIndex and resultColumnIndex are not needed in recursive function calls
+                currentBoardValue = self.GetNextMove(nextBoard,nextIsMaximizing,currentDepth + 1 ,alpha,beta)
+                if isMaximizing:
+                    if currentBoardValue > bestBoardValue:
+                        bestBoardValue = currentBoardValue
+                        bestMoveRowIndex = rowIndex
+                        bestMoveColumnIndex = columnIndex
+                        if bestBoardValue > alpha:
+                            alpha = bestBoardValue
+                        if bestBoardValue >= beta:
+                            break
+                else:
+                    if currentBoardValue < bestBoardValue:
+                        bestBoardValue = currentBoardValue
+                        bestMoveRowIndex = rowIndex
+                        bestMoveColumnIndex = columnIndex
+                        if bestBoardValue < beta:
+                            beta = bestBoardValue
+                        if bestBoardValue <= alpha:
+                            break
+
+        self.resultRowIndex = bestMoveRowIndex
+        self.resultColumnIndex = bestMoveColumnIndex
+        return bestBoardValue
+    #取得顏色
+    @staticmethod
+    def GetOpposite(color):
+        if color == 0:
+            return 1
+        elif color == 1:
+            return 0
+        else:
+            return None
+    
+    #取得路徑
+    def GetPossibleMoves(self,board,color):
+        return getValidMoves(board, color)
+
+    def EvaluateBoard(self,board):
+        color = self.tile
+        oppositeColor = self.GetOpposite( self.tile)
+        oppositePlayerPossibleMoves = self.GetPossibleMoves(board,oppositeColor)
+        possibleMoves = self.GetPossibleMoves(board,color)
+        if len(possibleMoves) == 0 and len(oppositePlayerPossibleMoves) ==0:
+            result = self.GetDiscsCount(color) - self.GetDiscsCount(oppositeColor)
+            addend = math.pow(board.Size,4) + math.pow(board.Size,3)# because it is a terminal state, its weight must be bigger than the heuristic ones
+            if result < 0:
+                 addend = -addend
+            return result + addend
+        else:
+            mobility = self.GetPossibleConvertions(board,color,possibleMoves) - self.GetPossibleConvertions(board,oppositeColor,oppositePlayerPossibleMoves)
+            stability = (self.GetStableDiscsCount(board,color) - self.GetStableDiscsCount(board,oppositeColor)) * board.Size * 2 / 3
+            return mobility + stability
+    
+    def GetPossibleConvertions(self,board,color,possibleMoves):
+        result = 0
+        for move in possibleMoves:
+            newBoard = board.Clone()
+            columnIndex = move[0]
+            rowIndex = move[1]
+            newBoard.SetFieldColor(rowIndex, columnIndex, color)
+            result += newBoard.InvertedDiscsLastMove
+        return result
+
+    def GetStableDiscsCount(self,board,color):
+        return self.GetStableDiscsFromCorner(board, color, 0, 0)  + self.GetStableDiscsFromCorner(board, color, 0, board.Size - 1) + self.GetStableDiscsFromCorner(board, color, board.Size - 1, 0) +self.GetStableDiscsFromCorner(board, color, board.Size - 1, board.Size - 1) +self.GetStableDiscsFromEdge(board, color, 0, True) +self.GetStableDiscsFromEdge(board, color, board.Size - 1, True) +self.GetStableDiscsFromEdge(board, color, 0, False) + self.GetStableDiscsFromEdge(board, color, board.Size - 1, False)
+    
+    def GetStableDiscsFromCorner(self,board,color,cornerRowIndex,cornerColumnIndex):
+        result = 0
+        rowIndexChange =  1 if cornerRowIndex == 0 else -1
+        columnIndexChange = 1 if cornerColumnIndex == 0 else -1
+
+        rowIndex = cornerRowIndex
+        rowIndexLimit =  board.Size if cornerRowIndex == 0 else 0
+        columnIndexLimit = board.Size if cornerColumnIndex == 0 else 0
+        rowIndex = cornerRowIndex
+        while rowIndex != rowIndexLimit:
+            columnIndex = cornerColumnIndex
+            while columnIndex != columnIndexLimit:
+                if board[columnIndex][rowIndex] == color:
+                    result = result +1
+                else:
+                    break
+                columnIndex += columnIndexChange
+            
+            if (columnIndexChange > 0 and columnIndex < board.Size ) or (columnIndexChange < 0 and columnIndex > 0):
+                columnIndexLimit = columnIndex - columnIndexChange
+                if columnIndexChange > 0 and columnIndexLimit == 0:
+                    columnIndexLimit = columnIndexLimit +1
+                elif columnIndexChange < 0 and columnIndexLimit == board.Size - 1:
+                    columnIndexLimit = columnIndexLimit -1
+                if (columnIndexChange > 0 and columnIndexLimit < 0) or (columnIndexChange < 0 and columnIndexLimit > board.Size - 1):
+                    break
+            rowIndex += rowIndexChange
+        return result
+
+    def GetStableDiscsFromEdge(self,board,color,edgeCoordinate,isHorizontal):
+        result = 0
+        if self.IsEdgeFull(board, edgeCoordinate, isHorizontal):
+            oppositeColorDiscsPassed = False
+            for otherCoordinate in range(board.Size):
+                fieldColor = board[otherCoordinate][edgeCoordinate] if isHorizontal else board[edgeCoordinate][edgeCoordinate]
+                if fieldColor != color:
+                    oppositeColorDiscsPassed = True
+                elif oppositeColorDiscsPassed:
+                    consecutiveDiscsCount = 0
+                    while otherCoordinate < board.Size and fieldColor == color:
+                        consecutiveDiscsCount = consecutiveDiscsCount +1
+                        otherCoordinate = otherCoordinate +1
+                        if otherCoordinate < board.Size:
+                            fieldColor = board[otherCoordinate][edgeCoordinate] if isHorizontal else board[edgeCoordinate][edgeCoordinate]
+                    if otherCoordinate != board.Size:
+                        result += consecutiveDiscsCount
+                        oppositeColorDiscsPassed = True
+        return result           
+
+    def IsEdgeFull(self,board,edgeCoordinate,isHorizontal):
+        for otherCoordinate in range(board.Size):
+            if (isHorizontal and board[otherCoordinate][ edgeCoordinate] == None) or (not isHorizontal and board[edgeCoordinate][ otherCoordinate] == None):
+                return False
+        return True

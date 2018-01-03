@@ -512,4 +512,6 @@ def checkForQuit():
 
 
 if __name__ == '__main__':
-    main()
+    import tensorflow as tf
+    sess = tf.Session()
+    sess.run(main())

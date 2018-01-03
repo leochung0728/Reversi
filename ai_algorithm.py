@@ -142,8 +142,8 @@ class Algorithm_4(object):
         self.board = board
         self.tile = tile
         self.depth = 3
-        self.minEvalBoard = -5  # float('-inf')
-        self.maxEvalBoard = 10  # float('inf')
+        self.minEvalBoard = float('-inf')
+        self.maxEvalBoard = float('inf')
         self.maximizingPlayer = True
 
     def getBestMove(self):
@@ -189,10 +189,8 @@ class Algorithm_4(object):
                 boardTemp = copy.deepcopy(board)
                 makeMove(boardTemp, tile, x, y)
                 valTemp = self.alphabeta(boardTemp, tile, depth - 1, alpha, beta, False)
-                #print(valTemp)
                 val = max(val, valTemp)
                 if val >= beta:
-                    #print("cut")
                     break
         else:
             val = beta

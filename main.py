@@ -3,7 +3,6 @@ from enum import Enum
 from pygame.locals import *
 from ai_factory import AlgorithmFactory
 from ai_algorithm import *
-from ai_algorithm_8 import *
 
 AI_DEFAULT = [Algorithm_4, Algorithm_7]
 

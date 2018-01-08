@@ -480,10 +480,7 @@ class Algorithm_6(object):
         for rowIndex in range(board.Size):
             for columnIndex in range(board.Size):
                 if board.CanSetFieldColor(rowIndex,columnIndex,color):
-                    if color == 1:
-                        result.append([columnIndex,rowIndex])
-                    else:
-                        result.append([rowIndex,columnIndex])
+                    result.append([rowIndex,columnIndex])
         return result 
 
     def EvaluateBoard(self,board):
@@ -578,15 +575,22 @@ class Algorithm_6(object):
                 return False
         return True
 
+
 #棋盤物件
 class Board2(list):
     def __init__(self, board):
         list.__init__([])
-        self.extend(board)
         self.DEFAULT_BOARD_SIZE = 8
         self.Size = self.DEFAULT_BOARD_SIZE
         self.mInvertedDiscsLastMove = 0
         #self.InvertedDiscsLastMove = self.mInvertedDiscsLastMove 
+        pBoard = []
+        for i in range(self.Size):
+            pBoard.append([None] * self.Size)
+        for i in range(self.Size):
+            for j in range(self.Size):
+                pBoard[i][j] = board[j][i]
+        self.extend(pBoard)
 
     def SetFieldColor(self,rowIndex,columnIndex,color):
         if self.CanSetFieldColor(rowIndex,columnIndex,color):
@@ -672,12 +676,12 @@ class Algorithm_7(object):
         self.resultColumnIndex = 0
         self.MAX_BOARD_VALUE = 2147483647
         self.MIN_BOARD_VALUE = - self.MAX_BOARD_VALUE
-        self.MaxDepth = Algorithm_MaxDepth
+        self.MaxDepth = 7
     #取得最佳路線
     def getBestMove(self):
         self.GetNextMove(self.board,True,1,self.MIN_BOARD_VALUE,self.MAX_BOARD_VALUE)
-        print( [self.resultRowIndex,self.resultColumnIndex])
-        return [self.resultRowIndex,self.resultColumnIndex]
+        #print( [self.resultRowIndex,self.resultColumnIndex])
+        return [self.resultColumnIndex,self.resultRowIndex]
     
     #取得下一步路線
     def GetNextMove(self,board,isMaximizing,currentDepth,alpha,beta):
@@ -750,10 +754,7 @@ class Algorithm_7(object):
         for rowIndex in range(board.Size):
             for columnIndex in range(board.Size):
                 if board.CanSetFieldColor(rowIndex,columnIndex,color):
-                    if color == 1:
-                        result.append([columnIndex,rowIndex])
-                    else:
-                        result.append([rowIndex,columnIndex])
+                    result.append([rowIndex,columnIndex])
         return result 
 
     def EvaluateBoard(self,board):
@@ -762,7 +763,7 @@ class Algorithm_7(object):
         oppositePlayerPossibleMoves = self.GetPossibleMoves(board,oppositeColor)
         possibleMoves = self.GetPossibleMoves(board,color)
         if len(possibleMoves) == 0 and len(oppositePlayerPossibleMoves) ==0:
-            result = self.GetDiscsCount(color) - self.GetDiscsCount(oppositeColor)
+            result = board.GetDiscsCount(color) - board.GetDiscsCount(oppositeColor)
             addend = math.pow(board.Size,4) + math.pow(board.Size,3)# because it is a terminal state, its weight must be bigger than the heuristic ones
             if result < 0:
                  addend = -addend

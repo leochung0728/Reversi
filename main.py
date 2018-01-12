@@ -193,12 +193,12 @@ def runGame():
     drawBoard(mainBoard)
     scores = getScoreOfBoard(mainBoard)
 
-    if scores[playerOneTile] > scores[playerTwoTile]:
-        text = 'player1 beat the player2 by %s points.' % (scores[playerOneTile] - scores[playerTwoTile])
-    elif scores[playerOneTile] < scores[playerTwoTile]:
-        text = 'player2 beat the player1 by %s points.' % (scores[playerTwoTile] - scores[playerOneTile])
+    if scores[BLACK_TILE] > scores[WHITE_TILE]:
+        text =  'player1 beat the player2 by %s points.' % (scores[BLACK_TILE] - scores[WHITE_TILE])
+    elif scores[BLACK_TILE] < scores[WHITE_TILE]:
+        text =  'player2 beat the player1 by %s points.' % (scores[WHITE_TILE] - scores[BLACK_TILE])
     else:
-        text = 'The game was a tie!'
+        text = str(scores) + 'The game was a tie!'
 
     textSurf = FONT.render(text, True, TEXTCOLOR, TEXTBGCOLOR1)
     textRect = textSurf.get_rect()
